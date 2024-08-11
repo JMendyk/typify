@@ -130,6 +130,8 @@ pub struct TypeStruct<'a> {
 pub struct TypeStructPropInfo<'a> {
     /// Name.
     pub name: &'a str,
+    /// Original name.
+    pub original_name: &'a str,
     /// Description.
     pub description: Option<&'a str>,
     /// Whether the propertty is required.
@@ -986,11 +988,16 @@ impl<'a> TypeStruct<'a> {
 
     /// Get all information about each struct property.
     pub fn properties_info(&'a self) -> impl Iterator<Item = TypeStructPropInfo> {
+        use type_entry::StructPropertyRename;
         self.details
             .properties
             .iter()
             .map(move |prop| TypeStructPropInfo {
                 name: prop.name.as_str(),
+                original_name: match &prop.rename {
+                    StructPropertyRename::Rename(original) => original.as_str(),
+                    _ => prop.name.as_str(),
+                },
                 description: prop.description.as_deref(),
                 required: matches!(&prop.state, StructPropertyState::Required),
                 type_id: prop.type_id.clone(),
